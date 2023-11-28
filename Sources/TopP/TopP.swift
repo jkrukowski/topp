@@ -44,18 +44,24 @@ public enum V1 {
             return (indexes: [], probs: [])
         }
 
-        let arr = softmax(arr)
-        var arrIndices = arr.enumerated().map { (index: $0, element: $1) }
-        arrIndices.sort { $0.element > $1.element }
+        let arrSoftmax = softmax(arr)
+        var indexLogitProb = [(index: Int, logit: Float, prob: Float)]()
+        indexLogitProb.reserveCapacity(arr.count)
+        for (index, data) in zip(arr, arrSoftmax).enumerated() {
+            indexLogitProb.append((index: index, logit: data.0, prob: data.1))
+        }
+        indexLogitProb.sort { $0.prob > $1.prob }
 
-        let cumsum = cumsum(arrIndices.map(\.element))
+        let cumsum = cumsum(indexLogitProb.map(\.prob))
         var sliceIndex = cumsum.count - 1
         for (index, element) in cumsum.enumerated() where element > p {
             sliceIndex = index
             break
         }
 
-        return (arrIndices[0 ... sliceIndex].map(\.index), arrIndices[0 ... sliceIndex].map(\.element))
+        let indexes = indexLogitProb[0 ... sliceIndex].map(\.index)
+        let probs = softmax(indexLogitProb[0 ... sliceIndex].map(\.logit))
+        return (indexes: indexes, probs: probs)
     }
 }
 
@@ -78,17 +84,23 @@ public enum V2 {
             return (indexes: [], probs: [])
         }
 
-        let arr = softmax(arr)
-        var arrIndices = arr.enumerated().map { (index: $0, element: $1) }
-        arrIndices.sort { $0.element > $1.element }
+        let arrSoftmax = softmax(arr)
+        var indexLogitProb = [(index: Int, logit: Float, prob: Float)]()
+        indexLogitProb.reserveCapacity(arr.count)
+        for (index, data) in zip(arr, arrSoftmax).enumerated() {
+            indexLogitProb.append((index: index, logit: data.0, prob: data.1))
+        }
+        indexLogitProb.sort { $0.prob > $1.prob }
 
-        let cumsum = cumsum(arrIndices.map(\.element))
+        let cumsum = cumsum(indexLogitProb.map(\.prob))
         var sliceIndex = cumsum.count - 1
         for (index, element) in cumsum.enumerated() where element > p {
             sliceIndex = index
             break
         }
 
-        return (arrIndices[0 ... sliceIndex].map(\.index), arrIndices[0 ... sliceIndex].map(\.element))
+        let indexes = indexLogitProb[0 ... sliceIndex].map(\.index)
+        let probs = softmax(indexLogitProb[0 ... sliceIndex].map(\.logit))
+        return (indexes: indexes, probs: probs)
     }
 }
